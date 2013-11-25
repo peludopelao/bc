@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+<project name="backup-cleaner" basedir="." default="clean-build">
+
+  <property name="projectName" value="backup-cleaner" />
+
+  <loadproperties srcFile="conf/version.properties" />
+
+  <property name="config.file" value="conf/workbench.properties" />
+
+  <property name="main.src.dir" value="src/main/java" />
+  <property name="test.src.dir" value="src/test/java" />
+  <property name="build.dir" value="build" />
+  <property name="main.build.dir" value="${build.dir}/main/java" />
+  <property name="test.build.dir" value="${build.dir}/test/java" />
+  <property name="dist.dir" value="dist" />
+  <property name="release.dir" value="release" />
+
+  <property name="lib.dir" value="lib" />
+
+  <property name="utiljarfile" value="util-${projectName}-${version}.jar" />
+  <property name="jarfile" value="weblogic_tools-1.0.jar" />
+  <property name="releasefile" value="${projectName}-${version}.zip" />
+
+  <target name="init">
+    <mkdir dir="${main.build.dir}" />
+    <mkdir dir="${test.build.dir}" />
+    <mkdir dir="${dist.dir}" />
+    <mkdir dir="${release.dir}" />
+  </target>
+
+  <target name="clean" depends="init">
+    <delete includeemptydirs="true">
+      <fileset dir="${build.dir}" includes="**/*" />
+      <fileset dir="${dist.dir}" includes="**/*" />
+      <fileset dir="${release.dir}" includes="**/*" />
+    </delete>
+    <antcall target="init" />
+  </target>
+
+  <target name="compile" depends="init">
+    <javac destdir="${main.build.dir}"
+           includes="**/*.java"
+           debug="true"
+           source="1.6"
+           target="1.6"
+           includeantruntime="false"
+           deprecation="true">
+      <src path="${main.src.dir}" />
+      <classpath>
+        <pathelement location="${lib.dir}/log4j-1.2.9.jar" />
+      </classpath>
+    </javac>
+    <javac destdir="${test.build.dir}"
+           includes="**/*.java"
+           debug="true"
+           source="1.6"
+           target="1.6"
+           includeantruntime="false"
+           deprecation="true">
+      <src path="${test.src.dir}" />
+      <classpath>
+        <pathelement path="${main.build.dir}" />
+        <pathelement location="${lib.dir}/log4j-1.2.9.jar" />
+        <pathelement location="${lib.dir}/junit.jar" />
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar">
+    <jar destfile="${dist.dir}/${projectName}-${version}.jar"
+         basedir="${main.build.dir}" />
+  </target>
+
+  <target name="build" depends="compile, jar" />
+
+  <target name="clean-build" depends="clean, build" />
+
+  <target name="release" depends="init">
+    <property name="release-build" value="yes" />
+    <antcall target="automatedtests" />
+    <zip destfile="${dist.dir}/${releasefile}">
+      <zipfileset file="${dist.dir}/${jarfile}" prefix="bin/tools" />
+      <zipfileset file="${scripts.build.dir}/atgd.sh" prefix="bin" />
+      <zipfileset file="docs/environment-config.xml" prefix="bin" />
+      <zipfileset dir="docs/officialDocs/docs" prefix="bin/docs" />
+      <zipfileset dir="docs/officialDocs/event-scripts"
+                  prefix="bin/event-scripts" />
+    </zip>
+  </target>
+
+  <!-- =============== -->
+  <!-- AUTOMATED TESTS -->
+  <!-- =============== -->
+
+  <target name="automatedtests" depends="clean-build">
+    <property name="junit.log" value="testresults/automated/automated-tests.log" />
+    <echo message="[ Automated tests starting... log file: ${junit.log} ]"
+          level="info" />
+    <java classname="tests.AllAutomatedTests"
+          failonerror="true"
+          output="${junit.log}">
+      <classpath>
+        <pathelement path="src/main/metadata" />
+        <pathelement path="${test.build.dir}" />
+        <pathelement path="${main.build.dir}" />
+        <pathelement location="${lib.dir}/log4j-1.2.9.jar" />
+        <pathelement location="${lib.dir}/junit.jar" />
+      </classpath>
+    </java>
+    <echo message="[ Automated tests finished ]" level="info" />
+  </target>
+
+</project>

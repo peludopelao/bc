@@ -22,7 +22,6 @@ public class BackupEntrySelectorTests extends TestCase {
   }
 
   public void testSimpleCase() throws ParseException {
-
     List<BackupEntry> entries = new ArrayList<BackupEntry>();
     entries.add(new BackupEntry(date("20131203"), null, false));
     entries.add(new BackupEntry(date("20131124"), null, false));
@@ -68,7 +67,7 @@ public class BackupEntrySelectorTests extends TestCase {
 
     BackupEntrySelector.markEntriesToKeep(entries, date("20131201"));
 
-    checkMarks("ttttttttt" + "tfff" + "ftf" + "ftf" + "ftff" + "ftff", entries);
+    checkMarks("ttttttttt" + "tfff" + "ftf" + "ftf" + "fftf" + "fftf", entries);
   }
 
   private void checkMarks(String expected, List<BackupEntry> entries) {

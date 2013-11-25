@@ -6,7 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 public class BackupEntrySelector {
+
+  private static final Logger log = Logger.getLogger(BackupEntrySelector.class);
 
   public static void markEntriesToKeep(List<BackupEntry> entries, Date date) {
 
@@ -14,9 +18,16 @@ public class BackupEntrySelector {
       return;
     }
 
-    // 1. Always keep the last entry
+    // 1. Always keep the latest entry
 
-    entries.get(entries.size() - 1).markKeep();
+    BackupEntry latest = null;
+    for (BackupEntry e : entries) {
+      if (latest == null || e.getDate().after(latest.getDate())) {
+        latest = e;
+      }
+    }
+    log.debug("latest: " + latest.getDate());
+    latest.markKeep();
 
     // 2. Keep all entries of last 7 days
 
@@ -28,6 +39,7 @@ public class BackupEntrySelector {
     for (BackupEntry e : entries) {
       if (!e.getDate().before(sevenDaysAgo)) {
         e.markKeep();
+        log.debug("2: " + e.getDate());
       }
     }
 
@@ -41,6 +53,7 @@ public class BackupEntrySelector {
     for (BackupEntry e : entries) {
       if (!e.getDate().before(fourWeeksAgo)) {
         WeekTime w = new WeekTime(e.getDate());
+        log.debug(e.getDate() + " - " + w.count() + "/" + w.ticks());
         BackupEntry best = weekEntries.get(w.count());
         if (best == null || new WeekTime(best.getDate()).ticks() < w.ticks()) {
           weekEntries.put(w.count(), e);
@@ -50,6 +63,7 @@ public class BackupEntrySelector {
 
     for (BackupEntry e : weekEntries.values()) {
       e.markKeep();
+      log.debug("3: " + e.getDate());
     }
 
     // 4. Keep month's last entry for ever.
@@ -65,8 +79,8 @@ public class BackupEntrySelector {
 
     for (BackupEntry e : monthEntries.values()) {
       e.markKeep();
+      log.debug("4: " + e.getDate());
     }
 
   }
-
 }

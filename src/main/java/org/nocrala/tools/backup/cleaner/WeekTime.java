@@ -18,8 +18,13 @@ public class WeekTime {
 
   public WeekTime(Date date) {
     this.date = date;
-    this.count = (date.getTime() - A_MONDAY.getTime()) / WEEK_DURATION;
-    this.ticks = (date.getTime() - A_MONDAY.getTime()) % WEEK_DURATION;
+    long diff = date.getTime() - A_MONDAY.getTime();
+    if (diff >= 0) {
+      this.count = diff / WEEK_DURATION;
+    } else {
+      this.count = ~(~diff / WEEK_DURATION);
+    }
+    this.ticks = diff - this.count * WEEK_DURATION;
   }
 
   public Date getDate() {
